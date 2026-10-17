@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Súper 🛒</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    boxShadow: {
+                        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.15)',
+                        'glow': '0 0 20px rgba(168, 85, 247, 0.35)',
+                        'card-shine': 'inset 0 1px 0 0 rgba(255, 255, 255, 0.6)'
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f2942 100%);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .glass-card-item {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.85) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03), inset 0 1px 1px rgba(255, 255, 255, 0.9);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glossy-header {
+            background: linear-gradient(-45deg, #ec4899, #8b5cf6, #3b82f6, #10b981, #f59e0b, #ef4444);
+            background-size: 400% 400%;
+            animation: colorShift 12s ease infinite;
+            box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .item-text-gradient {
+            background: linear-gradient(-45deg, #ec4899, #8b5cf6, #3b82f6, #10b981, #f59e0b);
+            background-size: 300% 300%;
+            animation: colorShift 8s ease infinite;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+        }
+
+        .glass-card-item::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 40%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent);
+            transform: skewX(-25deg);
+            animation: itemShine 6s infinite;
+            pointer-events: none;
+        }
+
+        @keyframes itemShine {
+            0% { left: -100%; }
+            30% { left: 200%; }
+            100% { left: 200%; }
+        }
+
+        .btn-gradient-dynamic {
+            background: linear-gradient(-45deg, #8b5cf6, #ec4899, #3b82f6, #10b981);
+            background-size: 300% 300%;
+            animation: colorShift 8s ease infinite;
+        }
+
+        @keyframes colorShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .glossy-header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+            transform: skewX(-25deg);
+            animation: shine 5s infinite;
+        }
+
+        @keyframes shine {
+            0% { left: -100%; }
+            20% { left: 200%; }
+            100% { left: 200%; }
+        }
+
+        .completed-item {
+            text-decoration: line-through;
+            opacity: 0.5;
+        }
+
+        .emoji-animated {
+            display: inline-block;
+            animation: floatEmoji 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes floatEmoji {
+            0% { transform: translateY(0px) rotate(0deg) scale(1); }
+            50% { transform: translateY(-3px) rotate(4deg) scale(1.08); }
+            100% { transform: translateY(2px) rotate(-4deg) scale(1); }
+        }
+
+        .item-pop-in {
+            animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.85) translateY(-8px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen p-3 md:p-6 flex justify-center items-start">
+    <div class="w-full max-w-md glass-card rounded-3xl shadow-glass overflow-hidden my-2 transition-all">
+        <div class="glossy-header p-6 text-white">
+            <div class="flex justify-between items-center relative z-10">
+                <div class="flex items-center space-x-3">
+                    <div class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-inner">
+                        <i class="fa-solid fa-basket-shopping text-3xl text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-5xl font-black tracking-wide text-white drop-shadow-md item-text-gradient">Súper</h1>
+                    </div>
+                </div>
+                <button onclick="limpiarTodo()" class="bg-white/20 hover:bg-white/30 active:scale-95 text-white text-xs px-3 py-2 rounded-xl font-semibold transition-all backdrop-blur-md border border-white/30 flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-trash-can text-red-200"></i> Borrar
+                </button>
+            </div>
+        </div>
+
+        <div class="p-4 bg-slate-50/80 border-b border-slate-200/60 backdrop-blur-md">
+            <form onsubmit="agregarProductos(event)" class="flex gap-2">
+                <div class="relative flex-1">
+                    <input type="text" id="productoInput" placeholder="Ej: Aguacate, cebolla y papel higiénico..." 
+                           class="w-full pl-10 pr-4 py-3 bg-white/90 border border-slate-200 rounded-2xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm shadow-sm transition-all"
+                           required autocomplete="off">
+                    <i class="fa-solid fa-wand-magic-sparkles absolute left-3.5 top-3.5 text-purple-500 text-sm"></i>
+                </div>
+                <button type="submit" id="btnAdd" class="btn-gradient-dynamic hover:opacity-90 active:scale-95 text-white px-5 rounded-2xl font-bold text-sm shadow-glow transition-all flex items-center justify-center gap-1">
+                    <span>Agregar</span>
+                    <i class="fa-solid fa-plus text-xs"></i>
+                </button>
+            </form>
+        </div>
+
+        <div class="p-4 space-y-4 max-h-[60vh] overflow-y-auto" id="contenedorCategorias">
+            <!-- Dynamic content injected by JavaScript -->
+        </div>
+
+        <div class="p-4 bg-slate-50/90 border-t border-slate-200/60 flex justify-between items-center text-xs text-slate-600 font-semibold">
+            <span id="contadorItems" class="bg-slate-200/80 px-2.5 py-1 rounded-full text-slate-700">0 productos</span>
+            <span class="text-purple-600 font-bold flex items-center gap-1.5 bg-purple-50 px-2.5 py-1 rounded-full border border-purple-200/60">
+                <i class="fa-solid fa-camera"></i> ¡Listo para screenshot!
+            </span>
+        </div>
+    </div>
+
+    <div id="modalConfirm" class="fixed inset-0 bg-slate-950/60 backdrop-blur-md hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-3xl p-6 max-w-xs w-full shadow-2xl text-center space-y-4 border border-slate-100">
+            <div class="w-14 h-14 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-inner">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div>
+                <h3 class="font-bold text-slate-800 text-base">¿Limpiar toda la lista?</h3>
+                <p class="text-xs text-slate-500 mt-1">Se eliminarán todos los elementos de tu lista.</p>
+            </div>
+            <div class="flex gap-2 pt-2">
+                <button onclick="cerrarModal()" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all">Cancelar</button>
+                <button onclick="confirmarLimpieza()" class="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition-all shadow-md">Sí, borrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const REGLAS_CATEGORIAS = [
+            {
+                nombre: "Botanas y Frituras 🍟",
+                palabras: [
+                    { kw: "papas fritas", emoji: "🍟" }, { kw: "sabritas", emoji: "🍟" }, { kw: "papas", emoji: "🥔" },
+                    { kw: "doritos", emoji: "🔺" }, { kw: "cheetos", emoji: "🧀" }, { kw: "chips", emoji: "🍟" },
+                    { kw: "ruffles", emoji: "🍟" }, { kw: "takis", emoji: "🌶️" }, { kw: "chicharrones", emoji: "🥓" },
+                    { kw: "palomitas", emoji: "🍿" }, { kw: "cacahuates", emoji: "🥜" }, { kw: "semillas", emoji: "🌻" },
+                    { kw: "nachos", emoji: "🧀" }, { kw: "pretzel", emoji: "🥨" }, { kw: "botana", emoji: "🍿" },
+                    { kw: "sabritones", emoji: "🍟" }, { kw: "churritos", emoji: "🌶️" }
+                ]
+            },
+            {
+                nombre: "Dulces y Golosinas 🍬",
+                palabras: [
+                    { kw: "chocolate", emoji: "🍫" }, { kw: "chocolates", emoji: "🍫" }, { kw: "dulce", emoji: "🍬" },
+                    { kw: "dulces", emoji: "🍬" }, { kw: "paleta", emoji: "🍭" }, { kw: "paletas", emoji: "🍭" },
+                    { kw: "chicle", emoji: "🫧" }, { kw: "chicles", emoji: "🫧" }, { kw: "gomitas", emoji: "🧸" },
+                    { kw: "caramelo", emoji: "🍬" }, { kw: "caramelos", emoji: "🍬" }, { kw: "malvavisco", emoji: "☁️" },
+                    { kw: "malvaviscos", emoji: "☁️" }, { kw: "kinder", emoji: "🍫" }, { kw: "nutella", emoji: "🍫" },
+                    { kw: "mazapan", emoji: "🥜" }, { kw: "m&m", emoji: "🍬" }
+                ]
+            },
+            {
+                nombre: "Panadería y Repostería 🍰",
+                palabras: [
+                    { kw: "pastel", emoji: "🍰" }, { kw: "pan dulce", emoji: "🥐" }, { kw: "pan", emoji: "🍞" },
+                    { kw: "galletas", emoji: "🍪" }, { kw: "galleta", emoji: "🍪" }, { kw: "donas", emoji: "🍩" },
+                    { kw: "dona", emoji: "🍩" }, { kw: "cupcake", emoji: "🧁" }, { kw: "pay", emoji: "🥧" },
+                    { kw: "pie", emoji: "🥧" }, { kw: "concha", emoji: "🥐" }, { kw: "croissant", emoji: "🥐" },
+                    { kw: "bolillo", emoji: "🥖" }, { kw: "baguette", emoji: "🥖" }, { kw: "harina", emoji: "🌾" },
+                    { kw: "muffin", emoji: "🧁" }, { kw: "hot cakes", emoji: "🥞" }, { kw: "pancakes", emoji: "🥞" }
+                ]
+            },
+            {
+                nombre: "Pastas, Sopas y Salsas 🍝",
+                palabras: [
+                    { kw: "spaghetti", emoji: "🍝" }, { kw: "espagueti", emoji: "🍝" }, { kw: "pasta", emoji: "🍝" },
+                    { kw: "salsa de tomate", emoji: "🍅" }, { kw: "pure de tomate", emoji: "🍅" }, { kw: "salsa picante", emoji: "🌶️" },
+                    { kw: "salsa verde", emoji: "🥑" }, { kw: "salsa roja", emoji: "🌶️" }, { kw: "salsa soya", emoji: "🥢" },
+                    { kw: "salsa", emoji: "🥫" }, { kw: "sopa", emoji: "🍜" }, { kw: "sopas", emoji: "🍜" },
+                    { kw: "ramen", emoji: "🍜" }, { kw: "maruchan", emoji: "🍜" }, { kw: "fideos", emoji: "🍜" },
+                    { kw: "macarrones", emoji: "🧀" }, { kw: "lasaña", emoji: "🍕" }, { kw: "consome", emoji: "🥣" },
+                    { kw: "knorr", emoji: "🥣" }, { kw: "caldo", emoji: "🥣" }
+                ]
+            },
+            {
+                nombre: "Carnes y Pescados 🥩",
+                palabras: [
+                    { kw: "salchichas", emoji: "🌭" }, { kw: "salchicha", emoji: "🌭" }, { kw: "bistec", emoji: "🥩" }, 
+                    { kw: "bisteck", emoji: "🥩" }, { kw: "carne molida", emoji: "🥩" }, { kw: "carne", emoji: "🥩" }, 
+                    { kw: "pechuga de pollo", emoji: "🍗" }, { kw: "pechuga", emoji: "🍗" }, { kw: "pollo", emoji: "🍗" }, 
+                    { kw: "jamon", emoji: "🥓" }, { kw: "tocino", emoji: "🥓" }, { kw: "pescado", emoji: "🐟" }, 
+                    { kw: "atun", emoji: "🐟" }, { kw: "camaron", emoji: "🦐" }, { kw: "chorizo", emoji: "🌭" }, 
+                    { kw: "costilla", emoji: "🍖" }, { kw: "milanesa", emoji: "🥩" }, { kw: "arrachera", emoji: "🥩" }, 
+                    { kw: "pavo", emoji: "🦃" }, { kw: "mariscos", emoji: "🦪" }, { kw: "salmon", emoji: "🐟" }
+                ]
+            },
+            {
+                nombre: "Frutas y Verduras 🍎",
+                palabras: [
+                    { kw: "tortilla", emoji: "🫓" }, { kw: "tortillas", emoji: "🫓" },
+                    { kw: "coliflor", emoji: "🥦" }, { kw: "cilantro", emoji: "🌿" }, { kw: "jalapeño", emoji: "🌶️" }, { kw: "jalapeno", emoji: "🌶️" },
+                    { kw: "manzana", emoji: "🍎" }, { kw: "platano", emoji: "🍌" }, { kw: "banana", emoji: "🍌" },
+                    { kw: "jitomate", emoji: "🍅" }, { kw: "tomate", emoji: "🍅" }, { kw: "cebolla", emoji: "🧅" },
+                    { kw: "papa", emoji: "🥔" }, { kw: "limon", emoji: "🍋" }, { kw: "aguacate", emoji: "🥑" },
+                    { kw: "zanahoria", emoji: "🥕" }, { kw: "lechuga", emoji: "🥬" }, { kw: "naranja", emoji: "🍊" },
+                    { kw: "fresa", emoji: "🍓" }, { kw: "uvas", emoji: "🍇" }, { kw: "brocoli", emoji: "🥦" },
+                    { kw: "chile", emoji: "🌶️" }, { kw: "pepino", emoji: "🥒" },
+                    { kw: "ajo", emoji: "🧄" }, { kw: "perejil", emoji: "🌿" }, { kw: "espinaca", emoji: "🥬" },
+                    { kw: "calabaza", emoji: "🥒" }, { kw: "elote", emoji: "🌽" }, { kw: "maiz", emoji: "🌽" },
+                    { kw: "piña", emoji: "🍍" }, { kw: "pina", emoji: "🍍" }, { kw: "sandia", emoji: "🍉" },
+                    { kw: "melon", emoji: "🍈" }, { kw: "mango", emoji: "🥭" }, { kw: "papaya", emoji: "🥭" },
+                    { kw: "kiwi", emoji: "🥝" }, { kw: "durazno", emoji: "🍑" }, { kw: "pera", emoji: "🍐" }
+                ]
+            },
+            {
+                nombre: "Lácteos y Huevos 🥛",
+                palabras: [
+                    { kw: "leche", emoji: "🥛" }, { kw: "queso", emoji: "🧀" }, { kw: "crema", emoji: "🥛" },
+                    { kw: "mantequilla", emoji: "🧈" }, { kw: "yogur", emoji: "🍦" }, { kw: "yogurt", emoji: "🍦" },
+                    { kw: "huevos", emoji: "🥚" }, { kw: "huevo", emoji: "🥚" }, { kw: "yakult", emoji: "🥛" },
+                    { kw: "margarina", emoji: "🧈" }, { kw: "quesillo", emoji: "🧀" }
+                ]
+            },
+            {
+                nombre: "Congelados ❄️",
+                palabras: [
+                    { kw: "helado", emoji: "🍨" }, { kw: "nieve", emoji: "🍧" }, { kw: "hielo", emoji: "🧊" },
+                    { kw: "pizza congelada", emoji: "🍕" }, { kw: "nuggets", emoji: "🍗" }, { kw: "paleta de hielo", emoji: "🍦" }
+                ]
+            },
+            {
+                nombre: "Ropa y Accesorios 👕",
+                palabras: [
+                    { kw: "playera", emoji: "👕" }, { kw: "camisa", emoji: "👔" }, { kw: "blusa", emoji: "👚" },
+                    { kw: "pantalones", emoji: "👖" }, { kw: "pantalon", emoji: "👖" }, { kw: "jeans", emoji: "👖" },
+                    { kw: "shorts", emoji: "🩳" }, { kw: "short", emoji: "🩳" }, { kw: "vestido", emoji: "👗" }, 
+                    { kw: "falda", emoji: "👗" }, { kw: "calcetines", emoji: "🧦" }, { kw: "calcetin", emoji: "🧦" }, 
+                    { kw: "ropa interior", emoji: "🩲" }, { kw: "boxer", emoji: "🩲" }, { kw: "sueter", emoji: "🧥" }, 
+                    { kw: "chamarra", emoji: "🧥" }, { kw: "sudadera", emoji: "🧥" }, { kw: "pijama", emoji: "🥻" }, 
+                    { kw: "zapatos", emoji: "👟" }, { kw: "tenis", emoji: "👟" }, { kw: "chanclas", emoji: "🩴" }, 
+                    { kw: "sandalias", emoji: "🩴" }, { kw: "gorra", emoji: "🧢" }, { kw: "sombrero", emoji: "👒" }, 
+                    { kw: "lentes", emoji: "🕶️" }, { kw: "bolsa", emoji: "👜" }, { kw: "mochila", emoji: "🎒" }
+                ]
+            },
+            {
+                nombre: "Abarrotes y Despensa 🥫",
+                palabras: [
+                    { kw: "frijoles", emoji: "🫘" }, { kw: "frijol", emoji: "🫘" }, { kw: "arroz", emoji: "🍚" }, 
+                    { kw: "aceite", emoji: "🫗" }, { kw: "azucar", emoji: "🧂" }, { kw: "sal", emoji: "🧂" },
+                    { kw: "cereal", emoji: "🥣" }, { kw: "cafe", emoji: "☕" }, { kw: "mayonesa", emoji: "🥫" },
+                    { kw: "catsup", emoji: "🥫" }, { kw: "mermelada", emoji: "🍯" }, { kw: "miel", emoji: "🍯" },
+                    { kw: "avena", emoji: "🥣" }, { kw: "vinagre", emoji: "🫗" }, { kw: "lata", emoji: "🥫" }
+                ]
+            },
+            {
+                nombre: "Bebidas 🧃",
+                palabras: [
+                    { kw: "refresco", emoji: "🥤" }, { kw: "soda", emoji: "🥤" }, { kw: "agua", emoji: "💧" }, 
+                    { kw: "cerveza", emoji: "🍺" }, { kw: "tequila", emoji: "🍾" }, { kw: "jugo", emoji: "🧃" },
+                    { kw: "coca cola", emoji: "🥤" }, { kw: "coca", emoji: "🥤" }, { kw: "vino", emoji: "🍷" }, 
+                    { kw: "té", emoji: "🫖" }, { kw: "te", emoji: "🫖" }, { kw: "electrolit", emoji: "⚡" }, 
+                    { kw: "energizante", emoji: "⚡" }, { kw: "vodka", emoji: "🍸" }, { kw: "whisky", emoji: "🥃" }
+                ]
+            },
+            {
+                nombre: "Baño e Higiene Personal 🧼",
+                palabras: [
+                    { kw: "papel higienico", emoji: "🧻" }, { kw: "papel de baño", emoji: "🧻" }, { kw: "papel baño", emoji: "🧻" }, { kw: "papel", emoji: "🧻" },
+                    { kw: "jabon de baño", emoji: "🧼" }, { kw: "jabon", emoji: "🧼" }, { kw: "shampoo", emoji: "🧴" },
+                    { kw: "champu", emoji: "🧴" }, { kw: "acondicionador", emoji: "🧴" }, { kw: "crema corporal", emoji: "🧴" },
+                    { kw: "desodorante", emoji: "🧴" }, { kw: "pasta de dientes", emoji: "🪥" }, { kw: "pasta dental", emoji: "🪥" },
+                    { kw: "cepillo de dientes", emoji: "🪥" }, { kw: "enjuague bucal", emoji: "🧪" }, { kw: "hilo dental", emoji: "🧵" },
+                    { kw: "toallas sanitarias", emoji: "🩹" }, { kw: "tampones", emoji: "🩹" }, { kw: "rastrillo", emoji: "🪒" },
+                    { kw: "crema de afeitar", emoji: "🫧" }, { kw: "hisopos", emoji: "🧹" }, { kw: "cotonetes", emoji: "🧹" },
+                    { kw: "toallitas humedas", emoji: "🧻" }
+                ]
+            },
+            {
+                nombre: "Limpieza del Hogar 🧺",
+                palabras: [
+                    { kw: "detergente", emoji: "🧺" }, { kw: "suavizante", emoji: "🧺" }, { kw: "zote", emoji: "🧼" },
+                    { kw: "cloro", emoji: "🧪" }, { kw: "fabuloso", emoji: "🧹" }, { kw: "pinol", emoji: "🌲" },
+                    { kw: "limpiador", emoji: "🧽" }, { kw: "trapeador", emoji: "🧹" }, { kw: "escoba", emoji: "🧹" },
+                    { kw: "recogedor", emoji: "🧹" }, { kw: "esponja", emoji: "🧽" }, { kw: "fibra", emoji: "🧽" },
+                    { kw: "servilletas", emoji: "🧻" }, { kw: "bolsas de basura", emoji: "🛍️" }, { kw: "bolsas", emoji: "🛍️" }
+                ]
+            }
+        ];
+
+        let lista = [
+            // Empty list at initial load as requested
+        ];
+
+        function normalizarTexto(str) {
+            return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+        }
+
+        function lanzarConfeti() {
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 80,
+                    spread: 60,
+                    origin: { y: 0.8 },
+                    colors: ['#a855f7', '#ec4899', '#3b82f6', '#10b981', '#f59e0b']
+                });
+            }
+        }
+
+        function analizarProducto(nombreIngresado) {
+            const textoNormalizado = normalizarTexto(nombreIngresado);
+            if (!textoNormalizado) return null;
+
+            for (let categoria of REGLAS_CATEGORIAS) {
+                for (let item of categoria.palabras) {
+                    const kwNorm = normalizarTexto(item.kw);
+                    const esFraseExacta = textoNormalizado === kwNorm;
+                    const contienePalabraCompleta = textoNormalizado.split(/\s+/).includes(kwNorm);
+                    const contieneFraseCompleta = kwNorm.includes(" ") && textoNormalizado.includes(kwNorm);
+
+                    if (esFraseExacta || contienePalabraCompleta || contieneFraseCompleta) {
+                        const nombreFormateado = nombreIngresado.charAt(0).toUpperCase() + nombreIngresado.slice(1);
+                        return {
+                            texto: nombreFormateado,
+                            emoji: item.emoji,
+                            categoria: categoria.nombre
+                        };
+                    }
+                }
+            }
+
+            const nombreFormateado = nombreIngresado.charAt(0).toUpperCase() + nombreIngresado.slice(1);
+            return {
+                texto: nombreFormateado,
+                emoji: "🛒",
+                categoria: "Otros / Varios 🛍️"
+            };
+        }
+
+        function agregarProductos(event) {
+            event.preventDefault();
+            const input = document.getElementById('productoInput');
+            const valorTotal = input.value.trim();
+            if (!valorTotal) return;
+
+            // Split by commas, periods, " y ", " e ", or newlines
+            let chunks = valorTotal
+                .replace(/[\.\,\;\n]/g, ',')
+                .replace(/\s+y\s+/gi, ',')
+                .replace(/\s+e\s+/gi, ',')
+                .split(',')
+                .map(i => i.trim())
+                .filter(i => i.length > 0);
+
+            let nuevosAgregados = 0;
+
+            chunks.forEach(trozo => {
+                // First check if the whole chunk matches a single known item/category
+                let resDirecto = analizarProducto(trozo);
+                if (resDirecto && resDirecto.categoria !== "Otros / Varios 🛍️") {
+                    lista.unshift({
+                        id: Date.now() + Math.random(),
+                        texto: resDirecto.texto,
+                        emoji: resDirecto.emoji,
+                        categoria: resDirecto.categoria,
+                        completado: false,
+                        nuevo: true
+                    });
+                    nuevosAgregados++;
+                } else {
+                    // Smart token scanner for space-separated list without punctuation (e.g., "soda agua leche")
+                    const subTokens = trozo.split(/\s+/);
+                    let i = 0;
+                    while (i < subTokens.length) {
+                        let matched = false;
+                        // Try matching multi-word phrases (up to 3 words) down to single words
+                        for (let len = Math.min(3, subTokens.length - i); len >= 1; len--) {
+                            let intentoFrase = subTokens.slice(i, i + len).join(' ');
+                            let resIntento = analizarProducto(intentoFrase);
+                            if (resIntento && resIntento.categoria !== "Otros / Varios 🛍️") {
+                                lista.unshift({
+                                    id: Date.now() + Math.random(),
+                                    texto: resIntento.texto,
+                                    emoji: resIntento.emoji,
+                                    categoria: resIntento.categoria,
+                                    completado: false,
+                                    nuevo: true
+                                });
+                                nuevosAgregados++;
+                                i += len;
+                                matched = true;
+                                break;
+                            }
+                        }
+                        
+                        // If no multi-word phrase matched, process single token
+                        if (!matched) {
+                            let resUnico = analizarProducto(subTokens[i]);
+                            if (resUnico) {
+                                lista.unshift({
+                                    id: Date.now() + Math.random(),
+                                    texto: resUnico.texto,
+                                    emoji: resUnico.emoji,
+                                    categoria: resUnico.categoria,
+                                    completado: false,
+                                    nuevo: true
+                                });
+                                nuevosAgregados++;
+                            }
+                            i++;
+                        }
+                    }
+                }
+            });
+
+            if (nuevosAgregados > 0) {
+                lanzarConfeti();
+            }
+
+            input.value = '';
+            renderizarLista();
+        }
+
+        function toggleCompletado(id) {
+            lista = lista.map(item => item.id === id ? { ...item, completado: !item.completado } : item);
+            renderizarLista();
+        }
+
+        function eliminarItem(id, event) {
+            event.stopPropagation();
+            lista = lista.filter(item => item.id !== id);
+            renderizarLista();
+        }
+
+        function limpiarTodo() {
+            if (lista.length === 0) return;
+            document.getElementById('modalConfirm').classList.remove('hidden');
+            document.getElementById('modalConfirm').classList.add('flex');
+        }
+
+        function cerrarModal() {
+            document.getElementById('modalConfirm').classList.add('hidden');
+            document.getElementById('modalConfirm').classList.remove('flex');
+        }
+
+        function confirmarLimpieza() {
+            lista = [];
+            cerrarModal();
+            renderizarLista();
+        }
+
+        function renderizarLista() {
+            const contenedor = document.getElementById('contenedorCategorias');
+            const contador = document.getElementById('contadorItems');
+            
+            contador.textContent = `${lista.length} producto${lista.length === 1 ? '' : 's'}`;
+
+            if (lista.length === 0) {
+                contenedor.innerHTML = `
+                    <div class="text-center py-10 px-4 text-slate-400">
+                        <div class="w-16 h-16 bg-slate-200/50 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400">
+                            <i class="fa-solid fa-basket-shopping text-2xl"></i>
+                        </div>
+                        <p class="text-sm font-semibold text-slate-600">Tu lista está vacía</p>
+                        <p class="text-xs text-slate-400 mt-1">Escribe lo que necesitas para comenzar.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const agrupados = {};
+            lista.forEach(item => {
+                if (!agrupados[item.categoria]) agrupados[item.categoria] = [];
+                agrupados[item.categoria].push(item);
+            });
+
+            let html = '';
+            for (let catNombre in agrupados) {
+                const items = agrupados[catNombre];
+                
+                html += `
+                    <div class="bg-white/60 rounded-2xl p-3 border border-slate-200/60 shadow-sm backdrop-blur-sm">
+                        <h2 class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5 px-1">
+                            ${catNombre}
+                        </h2>
+                        <div class="space-y-1.5">
+                `;
+
+                items.forEach(item => {
+                    const popClass = item.nuevo ? 'item-pop-in' : '';
+                    delete item.nuevo;
+
+                    html += `
+                        <div onclick="toggleCompletado(${item.id})" 
+                             class="glass-card-item ${popClass} flex items-center justify-between p-3 rounded-xl transition-all cursor-pointer hover:border-purple-400/80 active:scale-[0.99] ${
+                                item.completado ? 'opacity-50' : ''
+                             }">
+                            <div class="flex items-center gap-3">
+                                <div class="w-5 h-5 rounded-lg border transition-all flex items-center justify-center ${
+                                    item.completado ? 'bg-purple-600 border-purple-600 text-white shadow-sm' : 'border-slate-300 bg-white'
+                                }">
+                                    ${item.completado ? '<i class="fa-solid fa-check text-[10px]"></i>' : ''}
+                                </div>
+                                <span class="text-sm font-bold flex items-center gap-2 ${item.completado ? 'completed-item text-slate-400' : ''}">
+                                    <span class="${item.completado ? 'text-slate-400' : 'item-text-gradient'}">${item.texto}</span>
+                                    <span class="emoji-animated text-base">${item.emoji}</span>
+                                </span>
+                            </div>
+                            <button onclick="eliminarItem(${item.id}, event)" class="text-slate-300 hover:text-red-500 p-1.5 transition-colors relative z-10">
+                                <i class="fa-solid fa-xmark text-sm"></i>
+                            </button>
+                        </div>
+                    `;
+                });
+
+                html += `</div></div>`;
+            }
+
+            contenedor.innerHTML = html;
+        }
+
+        renderizarLista();
+    </script>
+</body>
+</html>
